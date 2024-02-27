@@ -5,7 +5,6 @@ import { QuickDB } from "quick.db";
 import { i18nMixin } from "../services/i18n.js";
 import { Logger } from "../services/logger.js";
 
-const webhook = new WebhookClient({ url: process.env.LOGWEBHOOK });
 const db = new QuickDB();
 
 let sus, fail, signed, total, remove, removeInvaild;
@@ -212,46 +211,49 @@ function UpdateStatistics(total, start_time, sus, fail, signed, nowTime) {
 	new Logger("自動執行").success(
 		`已結束 ${nowTime} 點自動簽到，簽到 ${sus}/${total} 人`
 	);
-	webhook.send({
-		embeds: [
-			new EmbedBuilder()
-				.setColor("#F2BE22")
-				.setTitle(`${nowTime} 點自動簽到`)
-				.setTimestamp()
-				.addFields(
-					{
-						name: `簽到總人數 \`${total}\` 人`,
-						value: "\u200b",
-						inline: false
-					},
-					{
-						name: `簽到成功人數 \`${sus}\` 人`,
-						value: "\u200b",
-						inline: true
-					},
-					{
-						name: `已簽到導致失敗人數 \`${signed}\` 人`,
-						value: "\u200b",
-						inline: true
-					},
-					{
-						name: `無效人數 \`${fail}\` 人`,
-						value: "\u200b",
-						inline: true
-					},
-					{
-						name: `花費時間 \`${parseFloat(
-							((end_time - start_time) / 1000).toFixed(3)
-						)}\` 秒`,
-						value: "\u200b",
-						inline: true
-					},
-					{
-						name: `平均時間 \`${average_time}\` 秒`,
-						value: "\u200b",
-						inline: true
-					}
-				)
-		]
-	});
+	try {
+		const webhook = new WebhookClient({ url: process.env.LOGWEBHOOK });
+		webhook.send({
+			embeds: [
+				new EmbedBuilder()
+					.setColor("#F2BE22")
+					.setTitle(`${nowTime} 點自動簽到`)
+					.setTimestamp()
+					.addFields(
+						{
+							name: `簽到總人數 \`${total}\` 人`,
+							value: "\u200b",
+							inline: false
+						},
+						{
+							name: `簽到成功人數 \`${sus}\` 人`,
+							value: "\u200b",
+							inline: true
+						},
+						{
+							name: `已簽到導致失敗人數 \`${signed}\` 人`,
+							value: "\u200b",
+							inline: true
+						},
+						{
+							name: `無效人數 \`${fail}\` 人`,
+							value: "\u200b",
+							inline: true
+						},
+						{
+							name: `花費時間 \`${parseFloat(
+								((end_time - start_time) / 1000).toFixed(3)
+							)}\` 秒`,
+							value: "\u200b",
+							inline: true
+						},
+						{
+							name: `平均時間 \`${average_time}\` 秒`,
+							value: "\u200b",
+							inline: true
+						}
+					)
+			]
+		});
+	} catch (error) {}
 }

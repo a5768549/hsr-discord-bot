@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { client } from "../index.js";
 import { ApplicationCommandOptionType } from "discord.js";
 import { i18nMixin, toI18nLang } from "../services/i18n.js";
@@ -15,8 +16,6 @@ import emoji from "../assets/emoji.js";
 import { QuickDB } from "quick.db";
 import { Logger } from "../services/logger.js";
 const db = new QuickDB();
-const FBwebhook = new WebhookClient({ url: process.env.FBWEBHOOK });
-const webhook = new WebhookClient({ url: process.env.CMDWEBHOOK });
 
 client.on(Events.InteractionCreate, async interaction => {
 	if (interaction.channel.type == ChannelType.DM) return;
@@ -31,25 +30,30 @@ client.on(Events.InteractionCreate, async interaction => {
 		if (interaction.customId == "feedback") {
 			const feedback = interaction.fields.getTextInputValue("suggest");
 
-			await FBwebhook.send({
-				embeds: [
-					new EmbedBuilder()
-						.setConfig("#FFFFFF")
-						.setAuthor({
-							name: `${interaction.user.username}`,
-							iconURL: interaction.user.displayAvatarURL({
-								size: 4096,
-								dynamic: true
-							}),
-							url: interaction.user.displayAvatarURL({
-								size: 4096,
-								dynamic: true
+			try {
+				const FBwebhook = new WebhookClient({
+					url: process.env.FBWEBHOOK
+				});
+				await FBwebhook.send({
+					embeds: [
+						new EmbedBuilder()
+							.setConfig("#FFFFFF")
+							.setAuthor({
+								name: `${interaction.user.username}`,
+								iconURL: interaction.user.displayAvatarURL({
+									size: 4096,
+									dynamic: true
+								}),
+								url: interaction.user.displayAvatarURL({
+									size: 4096,
+									dynamic: true
+								})
 							})
-						})
-						.setTimestamp()
-						.setDescription(`\`\`\`\n${feedback}\`\`\``)
-				]
-			});
+							.setTimestamp()
+							.setDescription(`\`\`\`\n${feedback}\`\`\``)
+					]
+				});
+			} catch (error) {}
 
 			await interaction.reply({
 				embeds: [
@@ -124,38 +128,43 @@ client.on(Events.InteractionCreate, async interaction => {
 			new Logger("指令").command(
 				`${interaction.user.displayName}(${interaction.user.id}) 執行 ${command.data.name} - ${time}`
 			);
-			webhook.send({
-				embeds: [
-					new EmbedBuilder()
-						.setConfig(null, time)
-						.setTimestamp()
-						.setAuthor({
-							iconURL: interaction.user.displayAvatarURL({
-								size: 4096,
-								dynamic: true
-							}),
-							name: `${interaction.user.username} - ${interaction.user.id}`
-						})
-						.setThumbnail(
-							interaction.guild.iconURL({
-								size: 4096,
-								dynamic: true
+			try {
+				const webhook = new WebhookClient({
+					url: process.env.CMDWEBHOOK
+				});
+				webhook.send({
+					embeds: [
+						new EmbedBuilder()
+							.setConfig(null, time)
+							.setTimestamp()
+							.setAuthor({
+								iconURL: interaction.user.displayAvatarURL({
+									size: 4096,
+									dynamic: true
+								}),
+								name: `${interaction.user.username} - ${interaction.user.id}`
 							})
-						)
-						.setDescription(
-							`\`\`\`${interaction.guild.name} - ${interaction.guild.id}\`\`\``
-						)
-						.addField(
-							command.data.name,
-							`${
-								interaction.options._subcommand
-									? `> ${interaction.options._subcommand}`
-									: "\u200b"
-							}`,
-							true
-						)
-				]
-			});
+							.setThumbnail(
+								interaction.guild.iconURL({
+									size: 4096,
+									dynamic: true
+								})
+							)
+							.setDescription(
+								`\`\`\`${interaction.guild.name} - ${interaction.guild.id}\`\`\``
+							)
+							.addField(
+								command.data.name,
+								`${
+									interaction.options._subcommand
+										? `> ${interaction.options._subcommand}`
+										: "\u200b"
+								}`,
+								true
+							)
+					]
+				});
+			} catch (error) {}
 		} catch (e) {
 			new Logger("指令").error(`錯誤訊息：${error}`);
 			await interaction.reply({

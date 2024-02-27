@@ -8,7 +8,7 @@ import emoji from "../assets/emoji.js";
 import { staminaColor } from "../services/request.js";
 import { Logger } from "../services/logger.js";
 
-const webhook = new WebhookClient({ url: process.env.LOGWEBHOOK });
+
 const db = new QuickDB();
 
 let sus, fail, total, remove, removeInvaild;
@@ -284,41 +284,47 @@ function UpdateStatistics(total, start_time, sus, fail, nowTime) {
 	new Logger("自動執行").info(
 		`已結束 ${nowTime} 點自動通知，通知 ${sus}/${total} 人`
 	);
-	webhook.send({
-		embeds: [
-			new EmbedBuilder()
-				.setColor("#C4D7B2")
-				.setTitle("自動通知")
-				.setTimestamp()
-				.addFields(
-					{
-						name: `通知總人數 \`${total}\` 人`,
-						value: "\u200b",
-						inline: false
-					},
-					{
-						name: `已通知人數 \`${sus}\` 人`,
-						value: "\u200b",
-						inline: true
-					},
-					{
-						name: `無效人數 \`${fail}\` 人`,
-						value: "\u200b",
-						inline: true
-					},
-					{
-						name: `花費時間 \`${parseFloat(
-							((end_time - start_time) / 1000).toFixed(3)
-						)}\` 秒`,
-						value: "\u200b",
-						inline: true
-					},
-					{
-						name: `平均時間 \`${average_time}\` 秒`,
-						value: "\u200b",
-						inline: true
-					}
-				)
-		]
-	});
+	try {
+		const webhook = new WebhookClient({ url: process.env.LOGWEBHOOK });
+		webhook.send({
+			embeds: [
+				new EmbedBuilder()
+					.setColor("#C4D7B2")
+					.setTitle("自動通知")
+					.setTimestamp()
+					.addFields(
+						{
+							name: `通知總人數 \`${total}\` 人`,
+							value: "\u200b",
+							inline: false
+						},
+						{
+							name: `已通知人數 \`${sus}\` 人`,
+							value: "\u200b",
+							inline: true
+						},
+						{
+							name: `無效人數 \`${fail}\` 人`,
+							value: "\u200b",
+							inline: true
+						},
+						{
+							name: `花費時間 \`${parseFloat(
+								((end_time - start_time) / 1000).toFixed(3)
+							)}\` 秒`,
+							value: "\u200b",
+							inline: true
+						},
+						{
+							name: `平均時間 \`${average_time}\` 秒`,
+							value: "\u200b",
+							inline: true
+						}
+					)
+			]
+		});
+	} catch (error) {
+		
+	}
+	
 }
