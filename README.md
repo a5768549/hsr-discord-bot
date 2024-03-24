@@ -54,12 +54,13 @@ git clone https://github.com/Yec1/hsr-discord-bot
 cd HSRre
 
 # Install dependencies.
-npm install / yarn install
+yarn install
 
 # Build Package
 cd node_modules/hoyoapi
-npm install / yarn install
-npm run build / yarn build
+git init
+yarn install
+yarn build
 ```
 
 ## Usage
