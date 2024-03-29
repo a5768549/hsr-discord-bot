@@ -63,12 +63,6 @@ async function handleNewsPostInteraction(interaction, tr, values) {
 	await interaction.message.edit({
 		embeds: [
 			new EmbedBuilder()
-				.setConfig(
-					null,
-					`${date.getUTCFullYear()} ${tr("year")} ${
-						date.getUTCMonth() + 1
-					} ${tr("month")} ${date.getUTCDate()} ${tr("day")}`
-				)
 				.setAuthor({
 					iconURL: data.user.avatar_url ?? "",
 					name: data.user.nickname ?? ""

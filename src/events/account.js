@@ -12,8 +12,7 @@ import { i18nMixin, toI18nLang } from "../services/i18n.js";
 import { trimCookie } from "../services/cookie.js";
 import { HonkaiStarRail, LanguageEnum } from "hoyoapi";
 import { player } from "../services/request.js";
-import { QuickDB } from "quick.db";
-const db = new QuickDB();
+const db = client.db;
 
 client.on(Events.InteractionCreate, async interaction => {
 	const tr = i18nMixin(
@@ -29,7 +28,7 @@ client.on(Events.InteractionCreate, async interaction => {
 			return await interaction.reply({
 				embeds: [
 					new EmbedBuilder()
-						.setConfig("#E76161")
+						.setColor("#E76161")
 						.setThumbnail(
 							"https://cdn.discordapp.com/attachments/1057244827688910850/1149967646884905021/1689079680rzgx5_icon.png"
 						)
@@ -42,7 +41,7 @@ client.on(Events.InteractionCreate, async interaction => {
 			await interaction.update({ fetchReply: true }).catch(() => {});
 			const i = interaction.values[0];
 
-			return await interaction.editReply({
+			await interaction.editReply({
 				components: [
 					new ActionRowBuilder().addComponents(
 						new StringSelectMenuBuilder()
@@ -64,6 +63,7 @@ client.on(Events.InteractionCreate, async interaction => {
 				],
 				ephemeral: true
 			});
+			return;
 		} else if (interaction.customId == "uid_edit2") {
 			const [option, i] = interaction.values[0].split("-");
 
@@ -102,6 +102,16 @@ client.on(Events.InteractionCreate, async interaction => {
 									.setRequired(false)
 									.setMinLength(1)
 									.setMaxLength(30)
+							),
+							new ActionRowBuilder().addComponents(
+								new TextInputBuilder()
+									.setCustomId("cookie_token")
+									.setLabel("CookieToken")
+									.setPlaceholder("v2_...")
+									.setStyle(TextInputStyle.Short)
+									.setRequired(false)
+									.setMinLength(10)
+									.setMaxLength(1000)
 							)
 						)
 				);
@@ -139,10 +149,10 @@ client.on(Events.InteractionCreate, async interaction => {
 				await db.set(`${interaction.user.id}.account`, accounts);
 			}
 
-			return await interaction.editReply({
+			return replyOrfollowUp(interaction, {
 				embeds: [
 					new EmbedBuilder()
-						.setConfig("#F6F1F1")
+						.setColor("#F6F1F1")
 						.setThumbnail(
 							"https://media.discordapp.net/attachments/1057244827688910850/1149971549131124778/march-7th-astral-express.png"
 						)
@@ -188,6 +198,16 @@ client.on(Events.InteractionCreate, async interaction => {
 								.setRequired(false)
 								.setMinLength(1)
 								.setMaxLength(30)
+						),
+						new ActionRowBuilder().addComponents(
+							new TextInputBuilder()
+								.setCustomId("cookie_token")
+								.setLabel("CookieToken")
+								.setPlaceholder("v2_...")
+								.setStyle(TextInputStyle.Short)
+								.setRequired(false)
+								.setMinLength(10)
+								.setMaxLength(1000)
 						)
 					)
 			);
@@ -197,11 +217,15 @@ client.on(Events.InteractionCreate, async interaction => {
 	if (interaction.isModalSubmit()) {
 		if (interaction.customId.startsWith("cookie_set")) {
 			const i = interaction.customId.split("-")[1];
-			const ltoken = interaction.fields.getTextInputValue("ltoken");
-			const ltuid = interaction.fields.getTextInputValue("ltuid");
+			const ltoken = interaction.fields.getTextInputValue("ltoken") || "";
+			const ltuid = interaction.fields.getTextInputValue("ltuid") || "";
+			const cookie_token =
+				interaction.fields.getTextInputValue("cookie_token") || "";
 			const cookie =
 				interaction.fields.getTextInputValue("cookie") ||
-				`ltoken_v2=${ltoken}; ltuid_v2=${ltuid}`;
+				`ltoken_v2=${ltoken}; ltuid_v2=${ltuid}${
+					cookie_token ? `; cookie_token_v2=${cookie_token}` : ""
+				}`;
 
 			const trimed_cookie = await trimCookie(cookie);
 
@@ -209,7 +233,7 @@ client.on(Events.InteractionCreate, async interaction => {
 				return await interaction.reply({
 					embeds: [
 						new EmbedBuilder()
-							.setConfig("#E76161")
+							.setColor("#E76161")
 							.setThumbnail(
 								"https://cdn.discordapp.com/attachments/1057244827688910850/1149967646884905021/1689079680rzgx5_icon.png"
 							)
@@ -241,7 +265,7 @@ client.on(Events.InteractionCreate, async interaction => {
 				return await interaction.reply({
 					embeds: [
 						new EmbedBuilder()
-							.setConfig("#F6F1F1")
+							.setColor("#F6F1F1")
 							.setThumbnail(
 								"https://media.discordapp.net/attachments/1057244827688910850/1149971549131124778/march-7th-astral-express.png"
 							)
@@ -257,7 +281,7 @@ client.on(Events.InteractionCreate, async interaction => {
 				replyOrfollowUp(interaction, {
 					embeds: [
 						new EmbedBuilder()
-							.setConfig("#E76161")
+							.setColor("#E76161")
 							.setThumbnail(
 								"https://cdn.discordapp.com/attachments/1057244827688910850/1149967646884905021/1689079680rzgx5_icon.png"
 							)
@@ -347,7 +371,7 @@ client.on(Events.InteractionCreate, async interaction => {
 				return await interaction.editReply({
 					embeds: [
 						new EmbedBuilder()
-							.setConfig("#E76161")
+							.setColor("#E76161")
 							.setThumbnail(
 								"https://cdn.discordapp.com/attachments/1057244827688910850/1149967646884905021/1689079680rzgx5_icon.png"
 							)
@@ -366,7 +390,7 @@ client.on(Events.InteractionCreate, async interaction => {
 				return await interaction.editReply({
 					embeds: [
 						new EmbedBuilder()
-							.setConfig("#E76161")
+							.setColor("#E76161")
 							.setThumbnail(
 								"https://cdn.discordapp.com/attachments/1057244827688910850/1149967646884905021/1689079680rzgx5_icon.png"
 							)
@@ -379,7 +403,7 @@ client.on(Events.InteractionCreate, async interaction => {
 			await interaction.editReply({
 				embeds: [
 					new EmbedBuilder()
-						.setConfig("#F6F1F1")
+						.setColor("#F6F1F1")
 						.setThumbnail(
 							"https://media.discordapp.net/attachments/1057244827688910850/1149971549131124778/march-7th-astral-express.png"
 						)
@@ -398,7 +422,7 @@ client.on(Events.InteractionCreate, async interaction => {
 				return await interaction.editReply({
 					embeds: [
 						new EmbedBuilder()
-							.setConfig("#E76161")
+							.setColor("#E76161")
 							.setThumbnail(
 								"https://cdn.discordapp.com/attachments/1057244827688910850/1149967646884905021/1689079680rzgx5_icon.png"
 							)
@@ -415,7 +439,7 @@ client.on(Events.InteractionCreate, async interaction => {
 					return await interaction.editReply({
 						embeds: [
 							new EmbedBuilder()
-								.setConfig("#E76161")
+								.setColor("#E76161")
 								.setThumbnail(
 									"https://cdn.discordapp.com/attachments/1057244827688910850/1149967646884905021/1689079680rzgx5_icon.png"
 								)
@@ -429,7 +453,7 @@ client.on(Events.InteractionCreate, async interaction => {
 					return await interaction.editReply({
 						embeds: [
 							new EmbedBuilder()
-								.setConfig("#E76161")
+								.setColor("#E76161")
 								.setThumbnail(
 									"https://cdn.discordapp.com/attachments/1057244827688910850/1149967646884905021/1689079680rzgx5_icon.png"
 								)
@@ -441,7 +465,7 @@ client.on(Events.InteractionCreate, async interaction => {
 			await interaction.editReply({
 				embeds: [
 					new EmbedBuilder()
-						.setConfig("#F6F1F1")
+						.setColor("#F6F1F1")
 						.setThumbnail(
 							"https://media.discordapp.net/attachments/1057244827688910850/1149971549131124778/march-7th-astral-express.png"
 						)

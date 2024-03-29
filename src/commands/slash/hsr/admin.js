@@ -160,7 +160,7 @@ export default {
 						.setThumbnail(
 							"https://cdn.discordapp.com/attachments/1057244827688910850/1149967646884905021/1689079680rzgx5_icon.png"
 						)
-						.setConfig("#E76161")
+						.setColor("#E76161")
 						.setTitle(`${tr("admin_noPer")}`)
 				],
 				ephemeral: true
@@ -183,7 +183,7 @@ export default {
 							.setThumbnail(
 								"https://cdn.discordapp.com/attachments/1057244827688910850/1149967646884905021/1689079680rzgx5_icon.png"
 							)
-							.setConfig("#E76161")
+							.setColor("#E76161")
 							.setTitle(`${tr("admin_removeFail")}`)
 					],
 					ephemeral: true
@@ -196,7 +196,7 @@ export default {
 							.setThumbnail(
 								"https://cdn.discordapp.com/attachments/1057244827688910850/1149967646884905021/1689079680rzgx5_icon.png"
 							)
-							.setConfig("#E76161")
+							.setColor("#E76161")
 							.setTitle(`${tr("admin_removeFail")}`)
 							.setDescription(
 								`${tr("admin_noUserSet", {
@@ -219,7 +219,7 @@ export default {
 							.setThumbnail(
 								"https://cdn.discordapp.com/attachments/1057244827688910850/1149967646884905021/1689079680rzgx5_icon.png"
 							)
-							.setConfig("#E76161")
+							.setColor("#E76161")
 							.setTitle(`${tr("admin_removeFail")}`)
 							.setDescription(
 								`${tr("admin_removeFailed", {
@@ -236,7 +236,7 @@ export default {
 						.setThumbnail(
 							"https://media.discordapp.net/attachments/1057244827688910850/1149971549131124778/march-7th-astral-express.png"
 						)
-						.setConfig("#F6F1F1")
+						.setColor("#F6F1F1")
 						.setTitle(`${tr("admin_removeSus")}`)
 						.setDescription(
 							`${tr("admin_removeSusMsg", {
@@ -263,7 +263,7 @@ export default {
 							.setThumbnail(
 								"https://cdn.discordapp.com/attachments/1057244827688910850/1149967646884905021/1689079680rzgx5_icon.png"
 							)
-							.setConfig("#E76161")
+							.setColor("#E76161")
 							.setTitle(`${tr("admin_moveFail")}`)
 							.setDescription(
 								`${tr("admin_moveNoPer", {
@@ -335,7 +335,7 @@ export default {
 							.setThumbnail(
 								"https://media.discordapp.net/attachments/1057244827688910850/1149971549131124778/march-7th-astral-express.png"
 							)
-							.setConfig("#F6F1F1")
+							.setColor("#F6F1F1")
 							.setTitle(`${tr("admin_moveSus")}`)
 							.setDescription(
 								`${tr("admin_moveSusMsg", {
@@ -352,7 +352,7 @@ export default {
 							.setThumbnail(
 								"https://cdn.discordapp.com/attachments/1057244827688910850/1149967646884905021/1689079680rzgx5_icon.png"
 							)
-							.setConfig("#E76161")
+							.setColor("#E76161")
 							.setTitle(`${tr("admin_moveFail")}`)
 							.setDescription(
 								`${tr("admin_moveFailed", {

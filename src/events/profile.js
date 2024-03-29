@@ -11,11 +11,10 @@ import { HonkaiStarRail, LanguageEnum } from "hoyoapi";
 import { i18nMixin, toI18nLang } from "../services/i18n.js";
 import { player, getNews } from "../services/request.js";
 import { charPage, mainPage, loadCharacters } from "../services/profile.js";
-import { QuickDB } from "quick.db";
 import axios from "axios";
 import Queue from "queue";
 
-const db = new QuickDB();
+const db = client.db;
 const drawQueue = new Queue({ autostart: true });
 
 const image_Header =
@@ -35,17 +34,15 @@ client.on(Events.InteractionCreate, async interaction => {
 
 		const [uid, i, userId] = interaction.values[0].split("-");
 
-		await interaction.editReply({
+		await replyOrfollowUp(interaction, {
 			embeds: [
 				new EmbedBuilder()
-					.setConfig()
 					.setTitle(tr("profile_imageLoading"))
 					.setThumbnail(
 						"https://media.discordapp.net/attachments/1057244827688910850/1126170338850504704/a_08824a3a9df7a4c9acfc3c7777be4034.gif"
 					)
 			],
-			components: [],
-			ephemeral: true
+			components: []
 		});
 
 		await handleDrawRequest(i, uid, userId, interaction);
@@ -141,9 +138,9 @@ client.on(Events.InteractionCreate, async interaction => {
 					await interaction.editReply({
 						embeds: [
 							new EmbedBuilder()
-								.setConfig()
 								.setTitle(
 									`${tr("draw_fail")}\n${tr("err_code")}${
+										error?.response?.data?.detail ??
 										error.message
 									}`
 								)
@@ -161,7 +158,6 @@ client.on(Events.InteractionCreate, async interaction => {
 				await interaction.editReply({
 					embeds: [
 						new EmbedBuilder()
-							.setConfig()
 							.setTitle(
 								`${tr("draw_wait", {
 									z: drawQueue.length - 1
@@ -244,7 +240,6 @@ client.on(Events.InteractionCreate, async interaction => {
 		return await interaction.message.edit({
 			embeds: [
 				new EmbedBuilder()
-					.setConfig()
 					.setAuthor({
 						iconURL: data.user.avatar_url ?? "",
 						name: data.user.nickname ?? ""
@@ -265,135 +260,6 @@ client.on(Events.InteractionCreate, async interaction => {
 					.setImage(data.image_list[0].url ?? "")
 			]
 		});
-	} else if (interaction.customId.startsWith("characters")) {
-		await interaction.update({ fetchReply: true }).catch(() => {});
-		const [id, i] = interaction.values[0].split("-");
-
-		try {
-			const hsr = new HonkaiStarRail({
-				cookie: (await db.get(`${id}.account`))[0].cookie
-					? (await db.get(`${id}.account`))[0].cookie
-					: await db.get(`${id}.cookie`),
-				lang: (await db?.has(`${interaction.user.id}.locale`))
-					? (await db?.get(`${interaction.user.id}.locale`)) == "tw"
-						? LanguageEnum.TRADIIONAL_CHINESE
-						: LanguageEnum.ENGLISH
-					: interaction.locale == "zh-TW"
-						? LanguageEnum.TRADIIONAL_CHINESE
-						: LanguageEnum.ENGLISH,
-				uid: (await db.get(`${id}.account`))[0].uid
-					? (await db.get(`${id}.account`))[0].uid
-					: await db.get(`${id}.uid`)
-			});
-
-			const playerData = await player(
-				(await db.get(`${id}.account`))[0].uid
-					? (await db.get(`${id}.account`))[0].uid
-					: await db.get(`${id}.uid`),
-				interaction
-			);
-			const characters = await hsr.record.characters();
-			const character = characters[i];
-			const relicsValue =
-				character.relics.length > 0
-					? character.relics
-							.map(
-								relic =>
-									`\`${relic.rarity}\`${emoji.yellowStar} ${
-										relic.name
-									} • ${tr("level")} ${relic.level}`
-							)
-							.join("\n")
-					: "";
-
-			const ornamentsValue =
-				character.ornaments.length > 0
-					? character.ornaments
-							.map(
-								relic =>
-									`\`${relic.rarity}\`${emoji.yellowStar} ${
-										relic.name
-									} • ${tr("level")} ${relic.level}`
-							)
-							.join("\n")
-					: "";
-
-			await interaction.editReply({
-				embeds: [
-					new EmbedBuilder()
-						.setConfig("#213555")
-						.setTitle(
-							`${character.name} ${emoji[character.element]}`
-						)
-						.setThumbnail(character.icon || "")
-						.setAuthor({
-							name:
-								playerData.player.nickname +
-								" - " +
-								playerData.player.uid,
-							iconURL:
-								image_Header +
-								"/" +
-								playerData.player.avatar.icon
-						})
-						.addFields(
-							{
-								name: `${tr("level")} ${character.level}`,
-								value: "\u200b",
-								inline: true
-							},
-							{
-								name: tr("eidolon", {
-									z: character.rank
-								}),
-								value: "\u200b",
-								inline: true
-							},
-							{
-								name: `${tr("lightcone")}`,
-								value: character.equip
-									? `${emoji.dot}${character.equip.name}\n${
-											emoji.line1
-										}${tr("lightconeLevel", {
-											z: `\`${character.equip.rank}\``
-										})}\n${emoji.line2}${tr("level")} \`${
-											character.equip.level
-										}\``
-									: `\`${tr("none")}\``,
-								inline: false
-							},
-							{
-								name: tr("relics"),
-								value: `${
-									relicsValue && ornamentsValue
-										? `${relicsValue}\n${ornamentsValue}`
-										: relicsValue ||
-											ornamentsValue ||
-											`\`${tr("none")}\``
-								}`,
-								inline: false
-							}
-						)
-				]
-			});
-		} catch (e) {
-			replyOrfollowUp(interaction, {
-				embeds: [
-					new EmbedBuilder()
-						.setConfig("#E76161")
-						.setThumbnail(
-							"https://cdn.discordapp.com/attachments/1057244827688910850/1149967646884905021/1689079680rzgx5_icon.png"
-						)
-						.setTitle(`${tr("cookie_failed")}`)
-						.setDescription(
-							`${tr("cookie_failedDesc")}\n\n${tr(
-								"err_code"
-							)}${e}`
-						)
-				],
-				ephemeral: true
-			});
-		}
 	} else if (interaction.customId.startsWith("leaderboard")) {
 		await interaction.update({ fetchReply: true }).catch(() => {});
 		const id = interaction.values[0];
@@ -471,7 +337,6 @@ client.on(Events.InteractionCreate, async interaction => {
 		await interaction.editReply({
 			embeds: [
 				new EmbedBuilder()
-					.setConfig(null, `${tr("leaderboard_footer")}`)
 					.setAuthor({
 						iconURL: `${image_Header}/${leaderboardData.score[0].avatar}`,
 						name: `${tr("leaderboard_title", {
@@ -600,7 +465,7 @@ client.on(Events.InteractionCreate, async interaction => {
 								z: localeJson[id].name
 							})}`
 						)
-						.setConfig("#E76161")
+						.setColor("#E76161")
 						.setThumbnail(
 							"https://cdn.discordapp.com/attachments/1057244827688910850/1149967646884905021/1689079680rzgx5_icon.png"
 						)

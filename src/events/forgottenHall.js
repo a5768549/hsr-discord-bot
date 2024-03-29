@@ -9,10 +9,9 @@ import {
 } from "discord.js";
 import { HonkaiStarRail, LanguageEnum } from "hoyoapi";
 import { indexImage } from "../services/forgottenHall.js";
-import { QuickDB } from "quick.db";
 import Queue from "queue";
 
-const db = new QuickDB();
+const db = client.db;
 const drawQueue = new Queue({ autostart: true });
 
 client.on(Events.InteractionCreate, async interaction => {
@@ -25,7 +24,7 @@ client.on(Events.InteractionCreate, async interaction => {
 
 	if (interaction.customId === "forgottenHall_Floor") {
 		await interaction.update({ fetchReply: true }).catch(() => {});
-		const [userId, i] = interaction.values[0].split("-");
+		const [userId, mode, time, i] = interaction.values[0].split("-");
 
 		const hsr = new HonkaiStarRail({
 			cookie: (await db.has(`${userId}.account`))
@@ -36,8 +35,8 @@ client.on(Events.InteractionCreate, async interaction => {
 					? LanguageEnum.TRADIIONAL_CHINESE
 					: LanguageEnum.ENGLISH
 				: interaction.locale == "zh-TW"
-				  ? LanguageEnum.TRADIIONAL_CHINESE
-				  : LanguageEnum.ENGLISH,
+					? LanguageEnum.TRADIIONAL_CHINESE
+					: LanguageEnum.ENGLISH,
 			uid: (await db.has(`${userId}.account`))
 				? (await db.get(`${userId}.account`))[0].uid
 				: await db.get(`${userId}.uid`)
@@ -46,25 +45,46 @@ client.on(Events.InteractionCreate, async interaction => {
 		await interaction.editReply({
 			embeds: [
 				new EmbedBuilder()
-					.setConfig()
 					.setTitle(tr("profile_Searching"))
 					.setThumbnail(
 						"https://media.discordapp.net/attachments/1057244827688910850/1119941063780601856/hertaa1.gif"
 					)
-			]
+			],
+			components: []
 		});
 
-		const res = await hsr.record.forgottenHall();
+		const res = await hsr.record.forgottenHall(
+			parseInt(mode),
+			parseInt(time)
+		);
 		const floor = res.all_floor_detail[i];
 
-		await handleDrawRequest(hsr.uid, userId, res, floor, interaction, tr);
+		await handleDrawRequest(
+			hsr.uid,
+			userId,
+			mode,
+			time,
+			res,
+			floor,
+			interaction,
+			tr
+		);
 	}
 });
 
-async function handleDrawRequest(uid, userId, res, floor, interaction, tr) {
+async function handleDrawRequest(
+	uid,
+	userId,
+	mode,
+	time,
+	res,
+	floor,
+	interaction,
+	tr
+) {
 	const drawTask = async () => {
 		try {
-			const imageBuffer = await indexImage(uid, res, floor, interaction);
+			const imageBuffer = await indexImage(uid, res, mode, floor, tr);
 			if (imageBuffer == null) throw new Error(tr("draw_NoData"));
 
 			const image = new AttachmentBuilder(imageBuffer, {
@@ -88,14 +108,27 @@ async function handleDrawRequest(uid, userId, res, floor, interaction, tr) {
 											/<\/?[^>]+(>|$)/g,
 											""
 										)}`,
-										description: `${tr(
-											"forgottenHall_desc",
-											{
-												s: `${floor.star_num}`,
-												r: `${floor.round_num}`
-											}
-										)}`,
-										value: `${userId}-${i}`
+										description:
+											mode == 2
+												? `${tr("forgottenHall_desc2", {
+														s: `${floor.star_num}`,
+														r: `${floor.round_num}`,
+														z: `${
+															(parseInt(
+																floor.node_1
+																	?.score
+															) || 0) +
+															(parseInt(
+																floor.node_2
+																	?.score
+															) || 0)
+														}`
+													})}`
+												: `${tr("forgottenHall_desc", {
+														s: `${floor.star_num}`,
+														r: `${floor.round_num}`
+													})}`,
+										value: `${userId}-${mode}-${time}-${i}`
 									};
 								})
 							)
@@ -106,7 +139,6 @@ async function handleDrawRequest(uid, userId, res, floor, interaction, tr) {
 			await interaction.editReply({
 				embeds: [
 					new EmbedBuilder()
-						.setConfig()
 						.setTitle(
 							`${tr("draw_fail")}\n${tr("err_code")}${
 								error.message
@@ -126,7 +158,6 @@ async function handleDrawRequest(uid, userId, res, floor, interaction, tr) {
 		await interaction.editReply({
 			embeds: [
 				new EmbedBuilder()
-					.setConfig()
 					.setTitle(
 						`${tr("draw_wait", {
 							z: drawQueue.length - 1

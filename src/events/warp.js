@@ -10,10 +10,9 @@ import {
 } from "discord.js";
 import { warpLog, warpLogImage } from "../services/warp.js";
 import { i18nMixin, toI18nLang } from "../services/i18n.js";
-import { QuickDB } from "quick.db";
 import Queue from "queue";
 
-const db = new QuickDB();
+const db = client.db;
 const drawQueue = new Queue({ autostart: true });
 
 client.on(Events.InteractionCreate, async interaction => {
@@ -49,7 +48,7 @@ client.on(Events.InteractionCreate, async interaction => {
 				return await interaction.reply({
 					embeds: [
 						new EmbedBuilder()
-							.setConfig("#E76161")
+							.setColor("#E76161")
 							.setThumbnail(
 								"https://cdn.discordapp.com/attachments/1057244827688910850/1149967646884905021/1689079680rzgx5_icon.png"
 							)
@@ -66,7 +65,7 @@ client.on(Events.InteractionCreate, async interaction => {
 				return await interaction.reply({
 					embeds: [
 						new EmbedBuilder()
-							.setConfig("#E76161")
+							.setColor("#E76161")
 							.setThumbnail(
 								"https://cdn.discordapp.com/attachments/1057244827688910850/1149967646884905021/1689079680rzgx5_icon.png"
 							)
@@ -79,7 +78,7 @@ client.on(Events.InteractionCreate, async interaction => {
 				return await interaction.reply({
 					embeds: [
 						new EmbedBuilder()
-							.setConfig("#E76161")
+							.setColor("#E76161")
 							.setThumbnail(
 								"https://cdn.discordapp.com/attachments/1057244827688910850/1149967646884905021/1689079680rzgx5_icon.png"
 							)
@@ -99,7 +98,6 @@ client.on(Events.InteractionCreate, async interaction => {
 			await interaction.reply({
 				embeds: [
 					new EmbedBuilder()
-						.setConfig()
 						.setTitle(tr("warp_simSetSus"))
 						.setThumbnail(interaction.user.displayAvatarURL())
 						.addFields(
@@ -148,7 +146,6 @@ client.on(Events.InteractionCreate, async interaction => {
 			await interaction.reply({
 				embeds: [
 					new EmbedBuilder()
-						.setConfig()
 						.setTitle(tr("profile_Searching"))
 						.setThumbnail(
 							"https://media.discordapp.net/attachments/1057244827688910850/1119941063780601856/hertaa1.gif"
@@ -162,7 +159,7 @@ client.on(Events.InteractionCreate, async interaction => {
 				return await interaction.editReply({
 					embeds: [
 						new EmbedBuilder()
-							.setConfig("#E76161")
+							.setColor("#E76161")
 							.setThumbnail(
 								"https://cdn.discordapp.com/attachments/1057244827688910850/1149967646884905021/1689079680rzgx5_icon.png"
 							)
@@ -171,12 +168,61 @@ client.on(Events.InteractionCreate, async interaction => {
 					]
 				});
 
-			async function handleDrawRequest(interaction, datas, title) {
+			async function handleDrawRequest(interaction, datas, title, type) {
 				const drawTask = async () => {
 					try {
+						const lastData =
+							(await db.get(
+								`${interaction.user.id}.warpLog.${type}`
+							)) ?? {};
+
+						const mergedData = lastData.data
+							? lastData.data.slice()
+							: [];
+
+						datas.data.forEach(newItem => {
+							if (
+								!mergedData.some(
+									oldItem =>
+										oldItem.id === newItem.id &&
+										oldItem.name === newItem.name &&
+										oldItem.count === newItem.count
+								)
+							) {
+								mergedData.unshift(newItem);
+							}
+						});
+
+						let totalCount = 0;
+						let totalCountWithCount = 0;
+
+						mergedData.forEach(item => {
+							totalCount++;
+							totalCountWithCount += item.count;
+						});
+
+						const total = totalCountWithCount + datas.pity;
+						const average =
+							totalCount > 0
+								? (total / totalCount).toFixed(2)
+								: 0;
+						const pity = datas.pity;
+
+						const mergedFinalData = {
+							total,
+							average,
+							pity,
+							data: mergedData
+						};
+
+						db.set(
+							`${interaction.user.id}.warpLog.${type}`,
+							mergedFinalData
+						);
+
 						const imageBuffer = await warpLogImage(
 							interaction,
-							datas,
+							mergedFinalData,
 							title
 						);
 						if (imageBuffer == null)
@@ -287,10 +333,10 @@ client.on(Events.InteractionCreate, async interaction => {
 							files: [image]
 						});
 					} catch (error) {
+						console.log(error);
 						await interaction.editReply({
 							embeds: [
 								new EmbedBuilder()
-									.setConfig()
 									.setTitle(
 										`${tr("draw_fail")}\n${tr("err_code")}${
 											error.message
@@ -310,7 +356,6 @@ client.on(Events.InteractionCreate, async interaction => {
 					await interaction.editReply({
 						embeds: [
 							new EmbedBuilder()
-								.setConfig()
 								.setTitle(
 									`${tr("draw_wait", {
 										z: drawQueue.length - 1
@@ -356,7 +401,6 @@ client.on(Events.InteractionCreate, async interaction => {
 				await interaction.message.edit({
 					embeds: [
 						new EmbedBuilder()
-							.setConfig()
 							.setTitle(tr("profile_imageLoading"))
 							.setThumbnail(
 								"https://media.discordapp.net/attachments/1057244827688910850/1126170338850504704/a_08824a3a9df7a4c9acfc3c7777be4034.gif"
@@ -369,21 +413,24 @@ client.on(Events.InteractionCreate, async interaction => {
 						handleDrawRequest(
 							interaction,
 							warpResults.character,
-							tr("warp_typeCharacter")
+							tr("warp_typeCharacter"),
+							type
 						);
 						break;
 					case "lightcone":
 						handleDrawRequest(
 							interaction,
 							warpResults.light_cone,
-							tr("warp_typeLightcone")
+							tr("warp_typeLightcone"),
+							type
 						);
 						break;
 					case "regular":
 						handleDrawRequest(
 							interaction,
 							warpResults.regular,
-							tr("warp_typeRegular")
+							tr("warp_typeRegular"),
+							type
 						);
 						break;
 				}

@@ -33,8 +33,8 @@ export default {
 		const uid = (await db.has(`${interaction.targetUser.id}.account`))
 			? (await db.get(`${interaction.targetUser.id}.account`))[0].uid
 			: (await db.has(`${interaction.targetUser.id}.uid`))
-			  ? await db.get(`${interaction.targetUser.id}.uid`)
-			  : null;
+				? await db.get(`${interaction.targetUser.id}.uid`)
+				: null;
 
 		const user = interaction.options.getUser("user") ?? interaction.user;
 
@@ -42,7 +42,7 @@ export default {
 			return await interaction.reply({
 				embeds: [
 					new EmbedBuilder()
-						.setConfig("#E76161")
+						.setColor("#E76161")
 						.setThumbnail(
 							"https://cdn.discordapp.com/attachments/1057244827688910850/1149967646884905021/1689079680rzgx5_icon.png"
 						)
@@ -56,7 +56,6 @@ export default {
 		await interaction.editReply({
 			embeds: [
 				new EmbedBuilder()
-					.setConfig()
 					.setTitle(tr("profile_Searching"))
 					.setThumbnail(
 						"https://media.discordapp.net/attachments/1057244827688910850/1119941063780601856/hertaa1.gif"
@@ -77,7 +76,7 @@ async function handleDrawRequest(user, uid, interaction, tr, emoji) {
 				return await interaction.editReply({
 					embeds: [
 						new EmbedBuilder()
-							.setConfig("#E76161")
+							.setColor("#E76161")
 							.setThumbnail(
 								"https://cdn.discordapp.com/attachments/1057244827688910850/1149967646884905021/1689079680rzgx5_icon.png"
 							)
@@ -131,10 +130,9 @@ async function handleDrawRequest(user, uid, interaction, tr, emoji) {
 			await interaction.editReply({
 				embeds: [
 					new EmbedBuilder()
-						.setConfig()
 						.setTitle(
 							`${tr("draw_fail")}\n${tr("err_code")}${
-								error.message
+								error?.response?.data?.detail ?? error.message
 							}`
 						)
 						.setThumbnail(
@@ -151,7 +149,6 @@ async function handleDrawRequest(user, uid, interaction, tr, emoji) {
 		await interaction.editReply({
 			embeds: [
 				new EmbedBuilder()
-					.setConfig()
 					.setTitle(
 						`${tr("draw_wait", {
 							z: drawQueue.length - 1

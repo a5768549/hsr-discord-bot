@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { client } from "../index.js";
 import { ApplicationCommandOptionType } from "discord.js";
 import { i18nMixin, toI18nLang } from "../services/i18n.js";
@@ -13,9 +12,9 @@ import {
 	ButtonStyle
 } from "discord.js";
 import emoji from "../assets/emoji.js";
-import { QuickDB } from "quick.db";
 import { Logger } from "../services/logger.js";
-const db = new QuickDB();
+
+const db = client.db;
 
 client.on(Events.InteractionCreate, async interaction => {
 	if (interaction.channel.type == ChannelType.DM) return;
@@ -31,13 +30,14 @@ client.on(Events.InteractionCreate, async interaction => {
 			const feedback = interaction.fields.getTextInputValue("suggest");
 
 			try {
+				const defaultUrl = "";
 				const FBwebhook = new WebhookClient({
-					url: process.env.FBWEBHOOK
+					url: process.env.FBWEBHOOK || defaultUrl
 				});
 				await FBwebhook.send({
 					embeds: [
 						new EmbedBuilder()
-							.setConfig("#FFFFFF")
+							.setColor("#FFFFFF")
 							.setAuthor({
 								name: `${interaction.user.username}`,
 								iconURL: interaction.user.displayAvatarURL({
@@ -53,12 +53,12 @@ client.on(Events.InteractionCreate, async interaction => {
 							.setDescription(`\`\`\`\n${feedback}\`\`\``)
 					]
 				});
-			} catch (error) {}
+			} catch (e) {}
 
 			await interaction.reply({
 				embeds: [
 					new EmbedBuilder()
-						.setConfig("#FF9B9B")
+						.setColor("#FF9B9B")
 						.setTitle(i18n("feedback_Sus"))
 						.setThumbnail(
 							"https://media.discordapp.net/attachments/1057244827688910850/1126797186844348426/310737454_186864900516151_6902700007088914183_n.png"
@@ -109,14 +109,14 @@ client.on(Events.InteractionCreate, async interaction => {
 			} else if (option.value) args.push(option.value);
 		}
 
-		if (
-			interaction.member.roles.cache.has("1012968415964704768") &&
-			!(await db.has(`${interaction.user.id}.premium`))
-		)
-			await db.set(`${interaction.user.id}.premium`, true);
-
 		try {
 			command.execute(client, interaction, args, i18n, db, emoji);
+
+			if (
+				interaction.member.roles.cache.has("1012968415964704768") &&
+				!(await db.has(`${interaction.user.id}.premium`))
+			)
+				await db.set(`${interaction.user.id}.premium`, true);
 
 			const time = `花費 ${(
 				(Date.now() - interaction.createdTimestamp) /
@@ -129,13 +129,13 @@ client.on(Events.InteractionCreate, async interaction => {
 				`${interaction.user.displayName}(${interaction.user.id}) 執行 ${command.data.name} - ${time}`
 			);
 			try {
+				const defaultUrl = "";
 				const webhook = new WebhookClient({
-					url: process.env.CMDWEBHOOK
+					url: process.env.CMDWEBHOOK || defaultUrl
 				});
 				webhook.send({
 					embeds: [
 						new EmbedBuilder()
-							.setConfig(null, time)
 							.setTimestamp()
 							.setAuthor({
 								iconURL: interaction.user.displayAvatarURL({
@@ -153,7 +153,7 @@ client.on(Events.InteractionCreate, async interaction => {
 							.setDescription(
 								`\`\`\`${interaction.guild.name} - ${interaction.guild.id}\`\`\``
 							)
-							.addField(
+							.addFields(
 								command.data.name,
 								`${
 									interaction.options._subcommand
@@ -164,9 +164,9 @@ client.on(Events.InteractionCreate, async interaction => {
 							)
 					]
 				});
-			} catch (error) {}
+			} catch (e) {}
 		} catch (e) {
-			new Logger("指令").error(`錯誤訊息：${error}`);
+			new Logger("指令").error(`錯誤訊息：${e.message}`);
 			await interaction.reply({
 				content: "哦喲，好像出了一點小問題，請重試",
 				ephemeral: true
@@ -178,7 +178,7 @@ client.on(Events.InteractionCreate, async interaction => {
 		try {
 			command.execute(client, interaction);
 		} catch (e) {
-			new Logger("指令").error(`錯誤訊息：${error}`);
+			new Logger("指令").error(`錯誤訊息：${e.message}`);
 			await interaction.reply({
 				content: "哦喲，好像出了一點小問題，請重試",
 				ephemeral: true

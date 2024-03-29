@@ -2,10 +2,15 @@ import { client } from "../index.js";
 import { Events, WebhookClient, EmbedBuilder, ActivityType } from "discord.js";
 import moment from "moment";
 
-
 client.on(Events.GuildCreate, async guild => {
+	const results = await client.cluster.broadcastEval(
+		c => c.guilds.cache.size
+	);
+	const totalGuilds = results.reduce((prev, val) => prev + val, 0);
+
 	try {
-		const webhook = new WebhookClient({ url: process.env.JLWEBHOOK });
+		const defaultUrl = "";
+		const webhook = new WebhookClient({ url: process.env.JLWEBHOOK || defaultUrl });
 		webhook.send({
 			embeds: [
 				new EmbedBuilder()
@@ -39,14 +44,11 @@ client.on(Events.GuildCreate, async guild => {
 					})
 					.addFields({
 						name: `${client.user.username} 的伺服器數量`,
-						value: `\`${client.guilds.cache.size}\` 個伺服器`,
+						value: `\`${totalGuilds}\` 個伺服器`,
 						inline: false
 					})
 					.setTimestamp()
 			]
 		});
-	} catch (error) {
-		
-	}
-	
+	} catch (e) {}
 });

@@ -178,12 +178,12 @@ export default {
 							: await db.get(`${user.id}.cookie`),
 					lang: (await db?.has(`${interaction.user.id}.locale`))
 						? (await db?.get(`${interaction.user.id}.locale`)) ==
-						  "tw"
+							"tw"
 							? LanguageEnum.TRADIIONAL_CHINESE
 							: LanguageEnum.ENGLISH
 						: interaction.locale == "zh-TW"
-						  ? LanguageEnum.TRADIIONAL_CHINESE
-						  : LanguageEnum.ENGLISH,
+							? LanguageEnum.TRADIIONAL_CHINESE
+							: LanguageEnum.ENGLISH,
 					uid:
 						(await db.has(`${user.id}.account`)) &&
 						(await db.get(`${user.id}.account`))[0].uid
@@ -210,7 +210,7 @@ export default {
 				await interaction.editReply({
 					embeds: [
 						new EmbedBuilder()
-							.setConfig(staminaColor(res.current_stamina))
+							.setColor(staminaColor(res.current_stamina))
 							.setThumbnail(
 								user.displayAvatarURL({
 									size: 4096,
@@ -234,7 +234,7 @@ export default {
 											: `<t:${
 													moment(new Date()).unix() +
 													res.stamina_recover_time
-											  }:R>`
+												}:R>`
 									}`,
 									value: "\u200b",
 									inline: false
@@ -290,13 +290,13 @@ export default {
 															0
 																? `\`${tr(
 																		"notify_claim"
-																  )}\``
+																	)}\``
 																: `<t:${
 																		moment(
 																			new Date()
 																		).unix() +
 																		expedition.remaining_time
-																  }:R>`
+																	}:R>`
 														}`;
 													})
 													.join("\n")
@@ -321,7 +321,6 @@ export default {
 				replyOrfollowUp(interaction, {
 					embeds: [
 						new EmbedBuilder()
-							.setConfig()
 							.setTitle(tr("notify_failed"))
 							.setDescription(
 								`<@${user.id}>\n\n${desc}\n\n${tr(
@@ -352,7 +351,7 @@ export default {
 					return await interaction.reply({
 						embeds: [
 							new EmbedBuilder()
-								.setConfig("#E76161")
+								.setColor("#E76161")
 								.setTitle(tr("autoNote_off"))
 								.setThumbnail(
 									"https://media.discordapp.net/attachments/1057244827688910850/1120715314678730832/kuru.gif"
@@ -379,7 +378,7 @@ export default {
 				return await interaction.reply({
 					embeds: [
 						new EmbedBuilder()
-							.setConfig("#A2CDB0")
+							.setColor("#A2CDB0")
 							.setTitle(tr("autoNote_on"))
 							.setDescription(
 								`${tr("autoNote_stamina", {
@@ -417,7 +416,6 @@ export default {
 				replyOrfollowUp(interaction, {
 					embeds: [
 						new EmbedBuilder()
-							.setConfig()
 							.setTitle(tr("notify_failed"))
 							.setDescription(
 								`<@${interaction.user.id}>\n\n${desc}`

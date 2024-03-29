@@ -19,8 +19,9 @@ async function getRelicsScore(character) {
 		const mainScore = calculateMainAffixScore(relic, charScore, i + 1);
 		const subScore = calculateSubScore(relic, charScore);
 
+
 		const relicScoreN = mainScore * 0.4 + subScore * 0.6;
-		totalScoreN += parseFloat(relicScoreN);
+		totalScoreN += parseFloat(relicScoreN.toString());
 		relic.scoreN = (relicScoreN * 100).toFixed(1);
 		relic.grade = calculateGrade(relic.scoreN);
 	}

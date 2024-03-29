@@ -3,6 +3,7 @@ import { i18nMixin, toI18nLang } from "./i18n.js";
 import { baseWeapons } from "./Constants.js";
 import { join } from "path";
 import axios from "axios";
+import { client } from "../index.js";
 import {
 	getRateUpFive,
 	getRateUpFour,
@@ -13,8 +14,7 @@ import {
 } from "./parseJSON.js";
 import trans from "../assets/translations.json" assert { type: "json" };
 import { createCanvas, loadImage, GlobalFonts } from "@napi-rs/canvas";
-import { QuickDB } from "quick.db";
-const db = new QuickDB();
+const db = client.db;
 
 GlobalFonts.registerFromPath(
 	join(".", "src", ".", "assets", "URW-DIN-Arabic-Medium.ttf"),
@@ -64,15 +64,15 @@ async function warpLog(input, interaction) {
 	};
 
 	const takumiQuery = new URLSearchParams({
-		authkey_ver: 1,
-		sign_type: 2,
+		authkey_ver: "1",
+		sign_type: "2",
 		game_biz: "hkrpg_global",
 		lang: "en",
 		authkey: "",
 		region: "",
-		gacha_type: 0,
-		size: 20,
-		end_id: 0
+		gacha_type: "0",
+		size: "20",
+		end_id: "0"
 	});
 
 	const queryParams = new URLSearchParams(input);
@@ -89,13 +89,11 @@ async function warpLog(input, interaction) {
 
 		for (const [gachaType, id] of Object.entries(gachaTypes)) {
 			const res = await fetchWarpData(query, id, 0);
-			if (!region) region = res.region;
-			query.set("region", region);
+			query.set("region", region || res.region);
 
 			await interaction.editReply({
 				embeds: [
 					new EmbedBuilder()
-						.setConfig()
 						.setTitle(
 							tr("warp_loading", {
 								a: type[gachaType]
@@ -362,7 +360,7 @@ async function createImage(id, warpResults) {
 					ctx.stroke();
 
 					const starlight = await loadImage(
-						"./src/assets/image/undying-starlight.png"
+						"./src/assets/image/warp/undying-starlight.png"
 					);
 					ctx.drawImage(starlight, xOffset + 8, yOffset + 8, 64, 64);
 
@@ -422,8 +420,8 @@ async function createImage(id, warpResults) {
 
 						const eidolon = await loadImage(
 							item.rarity == 4
-								? "./src/assets/image/eidolon-4star.png"
-								: "./src/assets/image/eidolon-5star.png"
+								? "./src/assets/image/warp/eidolon-4star.png"
+								: "./src/assets/image/warp/eidolon-5star.png"
 						);
 						ctx.drawImage(
 							eidolon,
@@ -618,7 +616,7 @@ async function warpLogImage(interaction, datas, title) {
 		const canvas = createCanvas(1370, 900);
 		const ctx = canvas.getContext("2d");
 
-		const bg = await loadImageAsync("./src/assets/image/warpbg.jpg");
+		const bg = await loadImageAsync("./src/assets/image/warp/warpbg.jpg");
 		ctx.drawImage(bg, 0, 0, 1920, 1080);
 
 		// Draw Icon
@@ -725,6 +723,7 @@ async function warpLogImage(interaction, datas, title) {
 
 		// Draw History
 		datas.data.slice(0, 23);
+		datas.data.reverse();
 		datas.data.unshift({
 			count: datas.pity
 		});
